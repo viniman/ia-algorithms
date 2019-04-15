@@ -2,8 +2,9 @@
 #include <vector>
 #include <string>
 #include <sstream>
-#include <stdlib.h>
+#include <stack>
 #include "src/Grafo.h"
+
 using namespace std;
 
 Grafo* G = new Grafo();
@@ -66,7 +67,7 @@ void criaMapa01(std::vector<std::vector<int> >& matAdj, bool PARAMETER, std::vec
     insereAresta(2, 5, PARAMETER, matAdj, 1);
     insereAresta(3, 6, PARAMETER, matAdj, 1);
     insereAresta(5, 8, PARAMETER, matAdj, 1);
-    insereAresta(6, 9, PARAMETER, matAdj, 1);
+    //insereAresta(6, 9, PARAMETER, matAdj, 1);
     insereAresta(7, 10, PARAMETER, matAdj, 1);
     insereAresta(7, 8, PARAMETER, matAdj, 0);
     insereAresta(8, 9, PARAMETER, matAdj, 0);
@@ -101,7 +102,7 @@ void metodoIrrevogavel(int ini, int fim, std::vector<std::vector<int> >& matAdj,
     int n = s;
     bool fracasso = false;
     bool sucesso = false;
-    while((sucesso == false) && (fracasso == false)){
+    while(!sucesso && !fracasso){
         int cont = 0;
         while(cont < operations.size()){
             if(matAdj[n][cont] != -1){
@@ -120,21 +121,72 @@ void metodoIrrevogavel(int ini, int fim, std::vector<std::vector<int> >& matAdj,
             fracasso = true;
         }
     }
-    if(fracasso == true){
+    if(fracasso){
         cout << "Fracasso em encontrar a solucao" << endl;
     }
     else{
-        if(sucesso == true){
-            cout << "--> Sucesso!!! Solucao: " << endl << endl;
-            cout << arvore << endl;
-        }
+        cout << "--> Sucesso!!! Solucao: " << endl << endl;
+        cout << arvore << endl;
     }
 
 }
 
 void backtracking(int ini, int fim, std::vector<std::vector<int> >& matAdj, std::vector<int>& operations)
 {
+    string arvore = "{";
+    stringstream convert;   // stream used for the conversion
+    stack<pair<int,int>> stackWay;
+    //int s = ini;
 
+    int actualState = ini;
+    bool fracasso = false;
+    bool sucesso = false;
+
+    int lastOperation;
+
+    stackWay.push(make_pair(actualState, 0));
+
+    while(!sucesso && !fracasso){
+        //int cont = 0;
+
+        while(stackWay.top().second < operations.size()){
+
+            if(stackWay.top().second+lastOperation >= operations.size()){               ///Não encontrou operação válida
+                //stackWay.pop();
+                stackWay.pop();
+                actualState = stackWay.top().first;
+            }
+
+            if(matAdj[actualState][stackWay.top().second] != -1){
+                lastOperation = stackWay.top().second;
+                convert << "[" << actualState <<" --(R:" << (stackWay.top().second+1) << ")--> " << matAdj[actualState][stackWay.top().second] << "], ";      ///Usado para a concatenação do texto e número em uma String única
+                arvore = arvore + convert.str();
+                convert.str(std::string());             ///"Limpa" a variável
+
+                actualState = matAdj[actualState][stackWay.top().second];
+                stackWay.push(make_pair(actualState, 0));
+
+
+                if(actualState == fim){
+                    sucesso = true;
+                }
+                break;
+            }
+            //cont++;
+            stackWay.top().second++;
+
+        }
+        if(stackWay.top().first == ini)
+            fracasso = true;
+
+    }
+    if(fracasso){
+        cout << "Fracasso em encontrar a solucao" << endl;
+    }
+    else{
+        cout << "--> Sucesso!!! Solucao: " << endl << endl;
+        cout << arvore << endl;
+    }
 }
 
 int main()
@@ -153,7 +205,8 @@ int main()
     }
     criaMapa01(matAdj, PARAMETER, operations);
     printMatrix(matAdj);
-    metodoIrrevogavel(0, 13, matAdj, operations);
+    //metodoIrrevogavel(0, 13, matAdj, operations);
+    backtracking(0, 13, matAdj, operations);
 
     //cout << PARAMETER << endl;
     //G->insereVertice(1);
