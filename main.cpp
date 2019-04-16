@@ -142,7 +142,9 @@ void backtracking(int ini, int fim, std::vector<std::vector<int> >& matAdj, std:
     bool fracasso = false;
     bool sucesso = false;
 
-    int lastOperation;
+    //bool listOpened[matAdj.size()];
+    //int lastOperation;
+    pair<int, bool> firsOperationOpened[matAdj.size()] = {make_pair(0,false)};
 
     stackWay.push(make_pair(actualState, 0));
 
@@ -151,20 +153,28 @@ void backtracking(int ini, int fim, std::vector<std::vector<int> >& matAdj, std:
 
         while(stackWay.top().second < operations.size()){
 
-            if(stackWay.top().second+lastOperation >= operations.size()){               ///Não encontrou operação válida
+            if(stackWay.top().second+firsOperationOpened[actualState].first+1 >= operations.size()){               ///Não encontrou operação válida
                 //stackWay.pop();
                 stackWay.pop();
                 actualState = stackWay.top().first;
+                break;
             }
 
             if(matAdj[actualState][stackWay.top().second] != -1){
-                lastOperation = stackWay.top().second;
-                convert << "[" << actualState <<" --(R:" << (stackWay.top().second+1) << ")--> " << matAdj[actualState][stackWay.top().second] << "], ";      ///Usado para a concatenação do texto e número em uma String única
+                if(!firsOperationOpened[actualState].second)
+                {
+                    firsOperationOpened[actualState].first = stackWay.top().second;
+                    firsOperationOpened[actualState].second = true;
+                }
+                stackWay.top().second++;
+                //lastOperation = stackWay.top().second;
+                convert << "[" << actualState <<" --(R:" << (stackWay.top().second) << ")--> " << matAdj[actualState][stackWay.top().second] << "], ";      ///Usado para a concatenação do texto e número em uma String única
                 arvore = arvore + convert.str();
                 convert.str(std::string());             ///"Limpa" a variável
 
-                actualState = matAdj[actualState][stackWay.top().second];
+                actualState = matAdj[actualState][stackWay.top().second-1];
                 stackWay.push(make_pair(actualState, 0));
+
 
 
                 if(actualState == fim){
@@ -176,8 +186,11 @@ void backtracking(int ini, int fim, std::vector<std::vector<int> >& matAdj, std:
             stackWay.top().second++;
 
         }
+
         if(stackWay.top().first == ini)
             fracasso = true;
+
+
 
     }
     if(fracasso){
